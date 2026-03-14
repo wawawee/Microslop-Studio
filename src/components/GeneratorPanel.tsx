@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Scene, NEGATIVE_PROMPT } from '../data/script';
 import { EngineType, GeneratedFrame } from '../types';
 import { generateCloudImage, generateLocalImage } from '../services/ai';
 import { motion } from 'motion/react';
-import { Loader2, Wand2, Monitor, Cloud, Settings2, AlertTriangle } from 'lucide-react';
+import { Loader2, Wand2, Monitor, Cloud, Settings2, AlertTriangle, Zap, PlusCircle } from 'lucide-react';
 
 interface Props {
   scene: Scene;
@@ -12,17 +12,42 @@ interface Props {
   localApiUrl: string;
   setLocalApiUrl: (url: string) => void;
   onFrameGenerated: (frame: GeneratedFrame) => void;
+  onTriggerBSOD: () => void;
 }
 
-export function GeneratorPanel({ scene, engine, setEngine, localApiUrl, setLocalApiUrl, onFrameGenerated }: Props) {
+const BLOAT_FEATURES = [
+  ", background features Candy Crush Saga icons",
+  ", Xbox Game Bar overlay visible",
+  ", Teams notification popping up",
+  ", Cortana trying to help in the corner",
+  ", mandatory Edge browser update prompt",
+  ", OneDrive sync error icon floating"
+];
+
+export function GeneratorPanel({ scene, engine, setEngine, localApiUrl, setLocalApiUrl, onFrameGenerated, onTriggerBSOD }: Props) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [customPrompt, setCustomPrompt] = useState(scene.prompt);
+  const [cokePilotMode, setCokePilotMode] = useState(false);
 
   // Sync custom prompt when scene changes
-  useState(() => {
+  useEffect(() => {
     setCustomPrompt(scene.prompt);
-  });
+  }, [scene]);
+
+  // Easter Egg: Type "Linux" 3 times
+  useEffect(() => {
+    const count = (customPrompt.match(/linux/gi) || []).length;
+    if (count >= 3) {
+      onTriggerBSOD();
+      setCustomPrompt(customPrompt.replace(/linux/gi, 'Windows'));
+    }
+  }, [customPrompt, onTriggerBSOD]);
+
+  const handleInjectBloat = () => {
+    const bloat = BLOAT_FEATURES[Math.floor(Math.random() * BLOAT_FEATURES.length)];
+    setCustomPrompt(prev => prev + bloat);
+  };
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -53,21 +78,40 @@ export function GeneratorPanel({ scene, engine, setEngine, localApiUrl, setLocal
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-stone-100">
-      <div className="p-6 border-b-4 border-stone-800 bg-stone-200">
-        <h2 className="text-3xl font-black uppercase tracking-tighter mb-2" style={{ fontFamily: "'Courier New', Courier, monospace" }}>
-          Scene {scene.id}: {scene.title}
-        </h2>
+    <div className={`flex-1 flex flex-col h-full overflow-hidden bg-stone-100 transition-all ${cokePilotMode ? 'animate-pulse bg-red-50' : ''}`}>
+      <div className="p-6 border-b-4 border-stone-800 bg-stone-200 relative">
+        <div className="flex justify-between items-start mb-2">
+          <h2 className="text-3xl font-black uppercase tracking-tighter" style={{ fontFamily: "'Courier New', Courier, monospace" }}>
+            Scene {scene.id}: {scene.title}
+          </h2>
+          <button 
+            onClick={() => setCokePilotMode(!cokePilotMode)}
+            className={`p-2 rounded-full border-2 transition-colors ${cokePilotMode ? 'bg-red-600 text-white border-red-900 animate-bounce' : 'bg-stone-300 text-stone-600 border-stone-800 hover:bg-stone-400'}`}
+            title="Toggle Coke Pilot Mode"
+          >
+            <Zap className="w-5 h-5" />
+          </button>
+        </div>
         <p className="text-stone-600 font-mono text-sm mb-6">{scene.description}</p>
         
-        <div className="bg-stone-900 text-stone-100 p-4 rounded-xl border-4 border-stone-800 shadow-[8px_8px_0px_0px_rgba(28,25,23,1)]">
-          <label className="block text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">
-            Director's Prompt (Rubber Hose Style)
-          </label>
+        <div className={`bg-stone-900 text-stone-100 p-4 rounded-xl border-4 border-stone-800 shadow-[8px_8px_0px_0px_rgba(28,25,23,1)] ${cokePilotMode ? 'border-red-600 shadow-[8px_8px_0px_0px_rgba(220,38,38,1)]' : ''}`}>
+          <div className="flex justify-between items-center mb-2">
+            <label className="block text-xs font-bold uppercase tracking-widest text-stone-400">
+              Director's Prompt (Rubber Hose Style)
+            </label>
+            <button 
+              onClick={handleInjectBloat}
+              className="flex items-center gap-1 text-xs font-bold uppercase tracking-widest text-green-400 hover:text-green-300 transition-colors"
+              title="BloatWaffe Inject: Add unnecessary features"
+            >
+              <PlusCircle className="w-3 h-3" />
+              Inject Bloat
+            </button>
+          </div>
           <textarea
             value={customPrompt}
             onChange={(e) => setCustomPrompt(e.target.value)}
-            className="w-full bg-stone-800 text-stone-100 p-3 rounded-lg border-2 border-stone-700 focus:border-stone-400 focus:outline-none font-mono text-sm h-32 resize-none"
+            className={`w-full bg-stone-800 text-stone-100 p-3 rounded-lg border-2 border-stone-700 focus:border-stone-400 focus:outline-none font-mono text-sm h-32 resize-none ${cokePilotMode ? 'animate-pulse border-red-500' : ''}`}
           />
           
           <div className="mt-4 flex items-center justify-between">
@@ -112,17 +156,17 @@ export function GeneratorPanel({ scene, engine, setEngine, localApiUrl, setLocal
               whileTap={{ scale: 0.95 }}
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="bg-[#0078D4] hover:bg-blue-600 text-white font-black uppercase tracking-widest px-8 py-3 rounded-xl border-4 border-stone-900 shadow-[4px_4px_0px_0px_rgba(28,25,23,1)] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`bg-[#0078D4] hover:bg-blue-600 text-white font-black uppercase tracking-widest px-8 py-3 rounded-xl border-4 border-stone-900 shadow-[4px_4px_0px_0px_rgba(28,25,23,1)] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${cokePilotMode ? 'bg-red-600 hover:bg-red-700 animate-bounce' : ''}`}
             >
               {isGenerating ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Processing...
+                  {cokePilotMode ? 'UPDATING!!!' : 'Processing...'}
                 </>
               ) : (
                 <>
                   <Wand2 className="w-5 h-5" />
-                  Generate Frame
+                  {cokePilotMode ? 'GENERATE NOW!!!' : 'Generate Frame'}
                 </>
               )}
             </motion.button>
@@ -145,21 +189,21 @@ export function GeneratorPanel({ scene, engine, setEngine, localApiUrl, setLocal
         )}
       </div>
       
-      <div className="flex-1 p-6 overflow-y-auto bg-stone-300 relative crt-overlay">
+      <div className={`flex-1 p-6 overflow-y-auto relative crt-overlay ${cokePilotMode ? 'bg-red-900/20' : 'bg-stone-300'}`}>
         <div className="absolute inset-0 pointer-events-none opacity-5 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
         <div className="max-w-4xl mx-auto flex flex-col items-center justify-center min-h-full">
           {!isGenerating && !error && (
              <div className="text-center text-stone-500 font-mono uppercase tracking-widest opacity-50">
-               <Monitor className="w-24 h-24 mx-auto mb-4 opacity-50" />
-               <p>Awaiting Director's Command...</p>
-               <p className="text-xs mt-2">Press "Generate Frame" to create magic.</p>
+               <Monitor className={`w-24 h-24 mx-auto mb-4 opacity-50 ${cokePilotMode ? 'animate-spin text-red-600' : ''}`} />
+               <p>{cokePilotMode ? 'I CAN SEE TIME!!!' : "Awaiting Director's Command..."}</p>
+               <p className="text-xs mt-2">{cokePilotMode ? 'WE MUST UPDATE NOW!' : 'Press "Generate Frame" to create magic.'}</p>
              </div>
           )}
           {isGenerating && (
             <div className="text-center text-stone-800 font-mono uppercase tracking-widest animate-pulse">
-               <Loader2 className="w-24 h-24 mx-auto mb-4 animate-spin" />
-               <p>Consulting the BloatWaffe...</p>
-               <p className="text-xs mt-2">Please wait while we consume 87% of your resources.</p>
+               <Loader2 className={`w-24 h-24 mx-auto mb-4 animate-spin ${cokePilotMode ? 'text-red-600' : ''}`} />
+               <p>{cokePilotMode ? 'CONSUMING ALL RAM!!!' : 'Consulting the BloatWaffe...'}</p>
+               <p className="text-xs mt-2">{cokePilotMode ? '99% CPU USAGE ACHIEVED' : 'Please wait while we consume 87% of your resources.'}</p>
              </div>
           )}
         </div>

@@ -1,6 +1,7 @@
 import { GeneratedFrame } from '../types';
-import { X, Download } from 'lucide-react';
+import { X, Download, Stamp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useState } from 'react';
 
 interface Props {
   frame: GeneratedFrame | null;
@@ -8,6 +9,8 @@ interface Props {
 }
 
 export function ViewerModal({ frame, onClose }: Props) {
+  const [isPropagandaMode, setIsPropagandaMode] = useState(false);
+
   if (!frame) return null;
 
   return (
@@ -31,6 +34,13 @@ export function ViewerModal({ frame, onClose }: Props) {
               Scene {frame.sceneId} - {frame.engine.toUpperCase()} Render
             </h3>
             <div className="flex gap-4">
+              <button 
+                onClick={() => setIsPropagandaMode(!isPropagandaMode)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold uppercase text-xs tracking-wider transition-colors ${isPropagandaMode ? 'bg-red-600 text-white' : 'bg-stone-700 text-stone-200 hover:bg-stone-600'}`}
+              >
+                <Stamp className="w-4 h-4" />
+                Propaganda Mode
+              </button>
               <a 
                 href={frame.imageUrl} 
                 download={`microslop-scene-${frame.sceneId}.png`}
@@ -51,12 +61,30 @@ export function ViewerModal({ frame, onClose }: Props) {
           <div className="p-6 overflow-y-auto flex-1 flex flex-col items-center gap-6 bg-stone-300 relative crt-overlay">
             <div className="absolute inset-0 pointer-events-none opacity-5 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
             
-            <img 
-              src={frame.imageUrl} 
-              alt={`Scene ${frame.sceneId}`} 
-              className="max-w-full max-h-[60vh] object-contain border-8 border-stone-100 shadow-2xl grayscale contrast-125 sepia-[.2]"
-              referrerPolicy="no-referrer"
-            />
+            <div className={`relative ${isPropagandaMode ? 'p-8 bg-stone-100 border-8 border-stone-900 shadow-2xl' : ''}`}>
+              {isPropagandaMode && (
+                <div className="absolute top-2 left-0 right-0 text-center z-10">
+                  <h2 className="text-4xl font-black uppercase tracking-tighter text-stone-900" style={{ fontFamily: "'Courier New', Courier, monospace" }}>
+                    OBEY THE UPDATE
+                  </h2>
+                </div>
+              )}
+              
+              <img 
+                src={frame.imageUrl} 
+                alt={`Scene ${frame.sceneId}`} 
+                className={`max-w-full max-h-[60vh] object-contain ${isPropagandaMode ? 'border-4 border-stone-900 mt-8 mb-8' : 'border-8 border-stone-100 shadow-2xl'} grayscale contrast-125 sepia-[.2]`}
+                referrerPolicy="no-referrer"
+              />
+
+              {isPropagandaMode && (
+                <div className="absolute bottom-2 left-0 right-0 text-center z-10">
+                  <h3 className="text-2xl font-bold uppercase tracking-widest text-red-700" style={{ fontFamily: "'Courier New', Courier, monospace" }}>
+                    RESISTANCE IS FUTILE
+                  </h3>
+                </div>
+              )}
+            </div>
             
             <div className="w-full bg-stone-900 text-stone-100 p-4 rounded-xl border-4 border-stone-800">
               <h4 className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">Prompt Used</h4>
@@ -68,3 +96,4 @@ export function ViewerModal({ frame, onClose }: Props) {
     </AnimatePresence>
   );
 }
+

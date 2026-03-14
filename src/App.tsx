@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { SceneSelector } from './components/SceneSelector';
 import { GeneratorPanel } from './components/GeneratorPanel';
 import { FilmStrip } from './components/FilmStrip';
 import { ViewerModal } from './components/ViewerModal';
+import { Clippy } from './components/Clippy';
+import { BSOD } from './components/BSOD';
 import { SCENES } from './data/script';
 import { EngineType, GeneratedFrame } from './types';
 
@@ -13,15 +15,42 @@ export default function App() {
   const [localApiUrl, setLocalApiUrl] = useState<string>('http://localhost:1234/v1/images/generations');
   const [frames, setFrames] = useState<GeneratedFrame[]>([]);
   const [viewingFrame, setViewingFrame] = useState<GeneratedFrame | null>(null);
+  const [showBSOD, setShowBSOD] = useState(false);
 
   const selectedScene = SCENES.find(s => s.id === selectedSceneId) || SCENES[0];
 
+  // 11 minute forced restart easter egg
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowBSOD(true);
+    }, 11 * 60 * 1000); // 11 minutes
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleFrameGenerated = (frame: GeneratedFrame) => {
+    // Randomly "lose" a frame (Sync Error Simulator)
+    if (Math.random() < 0.1) {
+      setShowBSOD(true);
+      return;
+    }
     setFrames(prev => [frame, ...prev]);
   };
 
   const handleDeleteFrame = (id: string) => {
+    const frameToDelete = frames.find(f => f.id === id);
     setFrames(prev => prev.filter(f => f.id !== id));
+
+    // Edgy Grim Resurrector: 20% chance to come back
+    if (frameToDelete && Math.random() < 0.2) {
+      setTimeout(() => {
+        setFrames(prev => {
+          if (!prev.find(f => f.id === id)) {
+            return [{...frameToDelete, prompt: frameToDelete.prompt + ' (RESURRECTED BY EDGY GRIM)'}, ...prev];
+          }
+          return prev;
+        });
+      }, 3000);
+    }
   };
 
   return (
@@ -43,6 +72,7 @@ export default function App() {
           localApiUrl={localApiUrl}
           setLocalApiUrl={setLocalApiUrl}
           onFrameGenerated={handleFrameGenerated}
+          onTriggerBSOD={() => setShowBSOD(true)}
         />
       </div>
       
@@ -58,7 +88,13 @@ export default function App() {
         frame={viewingFrame} 
         onClose={() => setViewingFrame(null)} 
       />
+
+      <Clippy />
+      <BSOD isActive={showBSOD} onDismiss={() => setShowBSOD(false)} />
     </div>
   );
 }
+
+
+
 
