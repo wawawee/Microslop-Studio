@@ -4,6 +4,7 @@ import { SceneSelector } from './components/SceneSelector';
 import { GeneratorPanel } from './components/GeneratorPanel';
 import { FilmStrip } from './components/FilmStrip';
 import { ViewerModal } from './components/ViewerModal';
+import { PlayerModal } from './components/PlayerModal';
 import { Clippy } from './components/Clippy';
 import { BSOD } from './components/BSOD';
 import { SCENES } from './data/script';
@@ -16,6 +17,11 @@ export default function App() {
   const [frames, setFrames] = useState<GeneratedFrame[]>([]);
   const [viewingFrame, setViewingFrame] = useState<GeneratedFrame | null>(null);
   const [showBSOD, setShowBSOD] = useState(false);
+  const [showPlayer, setShowPlayer] = useState(false);
+  
+  // Keyframe state for video generation / consistency
+  const [firstFrame, setFirstFrame] = useState<string | null>(null);
+  const [lastFrame, setLastFrame] = useState<string | null>(null);
 
   const selectedScene = SCENES.find(s => s.id === selectedSceneId) || SCENES[0];
 
@@ -60,6 +66,10 @@ export default function App() {
           setLocalApiUrl={setLocalApiUrl}
           onFrameGenerated={handleFrameGenerated}
           onTriggerBSOD={() => setShowBSOD(true)}
+          firstFrame={firstFrame}
+          setFirstFrame={setFirstFrame}
+          lastFrame={lastFrame}
+          setLastFrame={setLastFrame}
         />
       </div>
       
@@ -68,6 +78,9 @@ export default function App() {
           frames={frames} 
           onDelete={handleDeleteFrame}
           onView={setViewingFrame}
+          onSetFirstFrame={setFirstFrame}
+          onSetLastFrame={setLastFrame}
+          onPlay={() => setShowPlayer(true)}
         />
       </div>
 
@@ -76,11 +89,19 @@ export default function App() {
         onClose={() => setViewingFrame(null)} 
       />
 
+      {showPlayer && (
+        <PlayerModal 
+          frames={frames} 
+          onClose={() => setShowPlayer(false)} 
+        />
+      )}
+
       <Clippy />
       <BSOD isActive={showBSOD} onDismiss={() => setShowBSOD(false)} />
     </div>
   );
 }
+
 
 
 

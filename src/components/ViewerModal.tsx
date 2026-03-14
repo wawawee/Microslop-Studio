@@ -1,5 +1,5 @@
 import { GeneratedFrame } from '../types';
-import { X, Download, Stamp } from 'lucide-react';
+import { X, Download, Stamp, Hash, Video } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 
@@ -30,10 +30,15 @@ export function ViewerModal({ frame, onClose }: Props) {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center p-4 border-b-4 border-stone-800 bg-stone-900 text-stone-100">
-            <h3 className="font-mono font-bold uppercase tracking-widest text-lg">
+            <h3 className="font-mono font-bold uppercase tracking-widest text-lg flex items-center gap-2">
+              {frame.isVideo && <Video className="w-5 h-5" />}
               Scene {frame.sceneId} - {frame.engine.toUpperCase()} Render
             </h3>
             <div className="flex gap-4">
+              <div className="flex items-center gap-2 px-3 py-1 bg-stone-800 rounded-lg text-stone-400 font-mono text-xs border border-stone-700">
+                <Hash className="w-3 h-3" />
+                {frame.seed}
+              </div>
               <button 
                 onClick={() => setIsPropagandaMode(!isPropagandaMode)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold uppercase text-xs tracking-wider transition-colors ${isPropagandaMode ? 'bg-red-600 text-white' : 'bg-stone-700 text-stone-200 hover:bg-stone-600'}`}
@@ -43,7 +48,7 @@ export function ViewerModal({ frame, onClose }: Props) {
               </button>
               <a 
                 href={frame.imageUrl} 
-                download={`microslop-scene-${frame.sceneId}.png`}
+                download={`microslop-scene-${frame.sceneId}.${frame.isVideo ? 'mp4' : 'png'}`}
                 className="flex items-center gap-2 bg-[#0078D4] hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-bold uppercase text-xs tracking-wider transition-colors"
               >
                 <Download className="w-4 h-4" />
@@ -70,12 +75,22 @@ export function ViewerModal({ frame, onClose }: Props) {
                 </div>
               )}
               
-              <img 
-                src={frame.imageUrl} 
-                alt={`Scene ${frame.sceneId}`} 
-                className={`max-w-full max-h-[60vh] object-contain ${isPropagandaMode ? 'border-4 border-stone-900 mt-8 mb-8' : 'border-8 border-stone-100 shadow-2xl'} grayscale contrast-125 sepia-[.2]`}
-                referrerPolicy="no-referrer"
-              />
+              {frame.isVideo ? (
+                <video 
+                  src={frame.imageUrl} 
+                  className={`max-w-full max-h-[60vh] object-contain ${isPropagandaMode ? 'border-4 border-stone-900 mt-8 mb-8' : 'border-8 border-stone-100 shadow-2xl'} grayscale contrast-125 sepia-[.2]`}
+                  controls
+                  autoPlay
+                  loop
+                />
+              ) : (
+                <img 
+                  src={frame.imageUrl} 
+                  alt={`Scene ${frame.sceneId}`} 
+                  className={`max-w-full max-h-[60vh] object-contain ${isPropagandaMode ? 'border-4 border-stone-900 mt-8 mb-8' : 'border-8 border-stone-100 shadow-2xl'} grayscale contrast-125 sepia-[.2]`}
+                  referrerPolicy="no-referrer"
+                />
+              )}
 
               {isPropagandaMode && (
                 <div className="absolute bottom-2 left-0 right-0 text-center z-10">
@@ -96,4 +111,5 @@ export function ViewerModal({ frame, onClose }: Props) {
     </AnimatePresence>
   );
 }
+
 

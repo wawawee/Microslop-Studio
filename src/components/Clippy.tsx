@@ -18,13 +18,13 @@ export function Clippy() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    // Randomly appear every 30-60 seconds
+    // Randomly appear every 2-4 minutes
     const interval = setInterval(() => {
       if (!isVisible && Math.random() > 0.5) {
         setMessage(SUGGESTIONS[Math.floor(Math.random() * SUGGESTIONS.length)]);
         setIsVisible(true);
       }
-    }, 30000);
+    }, 120000);
 
     return () => clearInterval(interval);
   }, [isVisible]);

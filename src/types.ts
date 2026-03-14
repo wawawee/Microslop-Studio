@@ -5,6 +5,12 @@ export interface GeneratedFrame {
   prompt: string;
   engine: 'cloud' | 'local';
   timestamp: number;
+  seed: number;
+  firstFrame?: string;
+  lastFrame?: string;
+  isVideo?: boolean;
 }
 
 export type EngineType = 'cloud' | 'local';
+
+
