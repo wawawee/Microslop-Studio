@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Scene, NEGATIVE_PROMPT } from '../data/script';
 import { EngineType, GeneratedFrame } from '../types';
 import { generateCloudImage, generateLocalImage, generateCloudVideo } from '../services/ai';
@@ -43,6 +43,8 @@ export function GeneratorPanel({ scene, engine, setEngine, localApiUrl, setLocal
   const [seed, setSeed] = useState<number>(Math.floor(Math.random() * 1000000));
   const [isSeedLocked, setIsSeedLocked] = useState(false);
   const [showCharRefs, setShowCharRefs] = useState(false);
+  const [isDraggingFirst, setIsDraggingFirst] = useState(false);
+  const [isDraggingLast, setIsDraggingLast] = useState(false);
 
   // Sync custom prompt when scene changes
   useEffect(() => {
@@ -65,6 +67,34 @@ export function GeneratorPanel({ scene, engine, setEngine, localApiUrl, setLocal
 
   const handleInjectChar = (desc: string) => {
     setCustomPrompt(prev => prev + ", " + desc);
+  };
+
+  const handleDragOver = (e: React.DragEvent, setDragging: (val: boolean) => void) => {
+    e.preventDefault();
+    setDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent, setDragging: (val: boolean) => void) => {
+    e.preventDefault();
+    setDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent, setFrame: (url: string) => void, setDragging: (val: boolean) => void) => {
+    e.preventDefault();
+    setDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target?.result) {
+            setFrame(event.target.result as string);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    }
   };
 
   const handleGenerate = async () => {
@@ -159,46 +189,56 @@ export function GeneratorPanel({ scene, engine, setEngine, localApiUrl, setLocal
           
           {/* Keyframes Section */}
           <div className="flex gap-4 mb-4">
-            <div className="flex-1 bg-stone-800 border-2 border-stone-700 rounded-lg p-3 relative">
-              <div className="flex justify-between items-center mb-2">
+            <div 
+              className={`flex-1 border-2 rounded-lg p-3 relative transition-colors ${isDraggingFirst ? 'bg-stone-700 border-[#0078D4]' : 'bg-stone-800 border-stone-700'}`}
+              onDragOver={(e) => handleDragOver(e, setIsDraggingFirst)}
+              onDragLeave={(e) => handleDragLeave(e, setIsDraggingFirst)}
+              onDrop={(e) => handleDrop(e, setFirstFrame, setIsDraggingFirst)}
+            >
+              <div className="flex justify-between items-center mb-2 pointer-events-none">
                 <label className="text-xs font-bold uppercase tracking-widest text-stone-400 flex items-center gap-1">
                   <ImageIcon className="w-3 h-3" /> First Frame
                 </label>
                 {firstFrame && (
-                  <button onClick={() => setFirstFrame(null)} className="text-stone-500 hover:text-red-400 transition-colors">
+                  <button onClick={() => setFirstFrame(null)} className="text-stone-500 hover:text-red-400 transition-colors pointer-events-auto">
                     <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
               {firstFrame ? (
-                <div className="h-20 w-full rounded overflow-hidden border border-stone-600">
+                <div className="h-20 w-full rounded overflow-hidden border border-stone-600 pointer-events-none">
                   <img src={firstFrame} alt="First Frame" className="w-full h-full object-cover grayscale contrast-125 sepia-[.2]" />
                 </div>
               ) : (
-                <div className="h-20 w-full rounded border border-dashed border-stone-600 flex items-center justify-center text-stone-500 text-xs font-mono text-center px-2">
-                  Select from Filmstrip below
+                <div className="h-20 w-full rounded border border-dashed border-stone-600 flex items-center justify-center text-stone-500 text-xs font-mono text-center px-2 pointer-events-none">
+                  Select from Filmstrip or drag & drop image
                 </div>
               )}
             </div>
             
-            <div className="flex-1 bg-stone-800 border-2 border-stone-700 rounded-lg p-3 relative">
-              <div className="flex justify-between items-center mb-2">
+            <div 
+              className={`flex-1 border-2 rounded-lg p-3 relative transition-colors ${isDraggingLast ? 'bg-stone-700 border-[#0078D4]' : 'bg-stone-800 border-stone-700'}`}
+              onDragOver={(e) => handleDragOver(e, setIsDraggingLast)}
+              onDragLeave={(e) => handleDragLeave(e, setIsDraggingLast)}
+              onDrop={(e) => handleDrop(e, setLastFrame, setIsDraggingLast)}
+            >
+              <div className="flex justify-between items-center mb-2 pointer-events-none">
                 <label className="text-xs font-bold uppercase tracking-widest text-stone-400 flex items-center gap-1">
                   <ImageIcon className="w-3 h-3" /> Last Frame
                 </label>
                 {lastFrame && (
-                  <button onClick={() => setLastFrame(null)} className="text-stone-500 hover:text-red-400 transition-colors">
+                  <button onClick={() => setLastFrame(null)} className="text-stone-500 hover:text-red-400 transition-colors pointer-events-auto">
                     <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
               {lastFrame ? (
-                <div className="h-20 w-full rounded overflow-hidden border border-stone-600">
+                <div className="h-20 w-full rounded overflow-hidden border border-stone-600 pointer-events-none">
                   <img src={lastFrame} alt="Last Frame" className="w-full h-full object-cover grayscale contrast-125 sepia-[.2]" />
                 </div>
               ) : (
-                <div className="h-20 w-full rounded border border-dashed border-stone-600 flex items-center justify-center text-stone-500 text-xs font-mono text-center px-2">
-                  Select from Filmstrip below
+                <div className="h-20 w-full rounded border border-dashed border-stone-600 flex items-center justify-center text-stone-500 text-xs font-mono text-center px-2 pointer-events-none">
+                  Select from Filmstrip or drag & drop image
                 </div>
               )}
             </div>
