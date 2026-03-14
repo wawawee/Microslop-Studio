@@ -302,7 +302,7 @@ export function GeneratorPanel({ scene, engine, setEngine, localApiUrl, setLocal
                     }`}
                   >
                     <Monitor className="w-4 h-4" />
-                    Local (Wan 2.1 / M4)
+                    Local (Wan2.2-I2V-A14B)
                   </button>
                 </div>
                 

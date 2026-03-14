@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Clippy } from './Clippy';
 
 interface Props {
   isActive: boolean;
@@ -54,6 +55,7 @@ export function BSOD({ isActive, onDismiss }: Props) {
             </div>
           </div>
         </div>
+        <Clippy />
       </motion.div>
     </AnimatePresence>
   );

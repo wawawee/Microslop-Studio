@@ -5,7 +5,6 @@ import { GeneratorPanel } from './components/GeneratorPanel';
 import { FilmStrip } from './components/FilmStrip';
 import { ViewerModal } from './components/ViewerModal';
 import { PlayerModal } from './components/PlayerModal';
-import { Clippy } from './components/Clippy';
 import { BSOD } from './components/BSOD';
 import { SCENES } from './data/script';
 import { EngineType, GeneratedFrame } from './types';
@@ -96,7 +95,6 @@ export default function App() {
         />
       )}
 
-      <Clippy />
       <BSOD isActive={showBSOD} onDismiss={() => setShowBSOD(false)} />
     </div>
   );
