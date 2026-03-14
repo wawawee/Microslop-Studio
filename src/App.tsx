@@ -19,20 +19,7 @@ export default function App() {
 
   const selectedScene = SCENES.find(s => s.id === selectedSceneId) || SCENES[0];
 
-  // 11 minute forced restart easter egg
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowBSOD(true);
-    }, 11 * 60 * 1000); // 11 minutes
-    return () => clearTimeout(timer);
-  }, []);
-
   const handleFrameGenerated = (frame: GeneratedFrame) => {
-    // Randomly "lose" a frame (Sync Error Simulator)
-    if (Math.random() < 0.1) {
-      setShowBSOD(true);
-      return;
-    }
     setFrames(prev => [frame, ...prev]);
   };
 
@@ -57,7 +44,7 @@ export default function App() {
     <div className="flex flex-col h-screen bg-stone-300 text-stone-900 font-sans overflow-hidden crt-overlay relative">
       <div className="absolute inset-0 pointer-events-none opacity-5 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
       
-      <Header />
+      <Header onOpenProject={() => setShowBSOD(true)} />
       
       <div className="flex flex-1 overflow-hidden z-10">
         <SceneSelector 
@@ -94,6 +81,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
